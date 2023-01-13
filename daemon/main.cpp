@@ -74,8 +74,8 @@ static bool should_drop_privileges() {
     //
     // ro.secure:
     //   Drop privileges by default. Set to 1 on userdebug and user builds.
-    bool ro_secure = android::base::GetBoolProperty("ro.secure", true);
-    bool ro_debuggable = __android_log_is_debuggable();
+    bool ro_secure = true;
+    bool ro_debuggable = true;
 
     // Drop privileges if ro.secure is set...
     bool drop = ro_secure;
@@ -207,16 +207,7 @@ int adbd_main(int server_port) {
     // descriptor will always be open.
     adbd_cloexec_auth_socket();
 
-#if defined(__ANDROID__)
-    bool device_unlocked = android::base::GetProperty("ro.boot.verifiedbootstate", "") == "orange";
-    if (device_unlocked || __android_log_is_debuggable()) {
-        // If we're on userdebug/eng or the device is unlocked, permit no-authentication.
-        auth_required = android::base::GetBoolProperty("ro.adb.secure", false);
-#if defined(__ANDROID_RECOVERY__)
-        auth_required &= android::base::GetBoolProperty("ro.adb.secure.recovery", true);
-#endif
-    }
-#endif
+    auth_required = false;
 
     // Our external storage path may be different than apps, since
     // we aren't able to bind mount after dropping root.
